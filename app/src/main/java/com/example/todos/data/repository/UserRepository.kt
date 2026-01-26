@@ -1,13 +1,14 @@
 package com.example.todos.data.repository
 
+import com.example.todos.data.model.Todo
 import com.example.todos.data.model.User
 import com.example.todos.data.remote.RetrofitClient
-import kotlinx.coroutines. Dispatchers
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
  * Repository class to handle data operations
- * Acts as a single source of truth for user data
+ * Acts as a single source of truth for user and todo data
  * Separates the data layer from the UI layer
  */
 class UserRepository {
@@ -24,27 +25,47 @@ class UserRepository {
     suspend fun getUsers(): Result<List<User>> {
         return withContext(Dispatchers.IO) {
             try {
-                // Make the API call
                 val response = apiService.getUsers()
 
-                // Check if response is successful (HTTP 200-299)
-                if (response. isSuccessful) {
-                    // Get the body of response (list of users)
+                if (response.isSuccessful) {
                     val users = response.body()
-
-                    // If body is not null, return success
                     if (users != null) {
                         Result.success(users)
                     } else {
-                        // Body is null, return failure
                         Result.failure(Exception("Empty response body"))
                     }
                 } else {
-                    // HTTP error (4xx, 5xx)
                     Result.failure(Exception("HTTP Error: ${response.code()} - ${response.message()}"))
                 }
-            } catch (e:  Exception) {
-                // Network error, timeout, or parsing error
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    /**
+     * Fetches todos for a specific user
+     * Uses withContext(Dispatchers.IO) to ensure network call happens on IO thread
+     *
+     * @param userId ID of the user to fetch todos for
+     * @return Result<List<Todo>> - Success with todo list or Failure with exception
+     */
+    suspend fun getTodosByUser(userId: Int): Result<List<Todo>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = apiService.getTodosByUser(userId)
+
+                if (response.isSuccessful) {
+                    val todos = response.body()
+                    if (todos != null) {
+                        Result.success(todos)
+                    } else {
+                        Result.failure(Exception("Empty response body"))
+                    }
+                } else {
+                    Result.failure(Exception("HTTP Error: ${response.code()} - ${response.message()}"))
+                }
+            } catch (e: Exception) {
                 Result.failure(e)
             }
         }

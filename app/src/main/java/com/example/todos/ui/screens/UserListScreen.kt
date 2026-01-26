@@ -1,135 +1,171 @@
 package com.example.todos.ui.screens
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout. PaddingValues
-import androidx. compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose. foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose. foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx. compose.material3.MaterialTheme
-import androidx.compose. material3.Text
-import androidx. compose.runtime.Composable
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui. text.font.FontWeight
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.todos.data.model.Address
-import com.example.todos.data.model. Company
-import com.example.todos.data.model. Geo
-import com.example.todos.data.model. User
+import com.example.todos.data.model.Company
+import com.example.todos.data.model.Geo
+import com.example.todos.data.model.User
 
 /**
  * Main screen displaying the list of users
  * Uses LazyColumn for performance - only renders visible items
- *
- * @param users List of users to display
  */
 @Composable
 fun UserListScreen(
     users: List<User>,
     modifier: Modifier = Modifier
 ) {
-    // LazyColumn is like RecyclerView - only composes visible items
-    // Perfect for large lists for better performance
     LazyColumn(
-        modifier = modifier.fillMaxSize(), // Fill entire screen
-        contentPadding = PaddingValues(16.dp), // Padding around the list
-        verticalArrangement = Arrangement.spacedBy(12.dp) // Space between items
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // items() is a LazyColumn DSL that creates items from a list
-        // key = { it.id } helps with recomposition optimization
         items(
             items = users,
-            key = { user -> user.id } // Unique key for each item
+            key = { user -> user.id }
         ) { user ->
-            // Composable for each user item
             UserItem(user = user)
         }
     }
 }
 
 /**
- * Composable for individual user card
- * Displays user information in a Material Design card
- *
- * @param user User object to display
+ * Improved user card with better visual hierarchy and modern design
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserItem(
     user: User,
+    onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    // Card provides elevation and shape
     Card(
-        modifier = modifier. fillMaxWidth(), // Card fills width of parent
-        elevation = CardDefaults. cardElevation(
-            defaultElevation = 4.dp // Elevation (shadow) of card
+        modifier = modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp,
+            pressedElevation = 8.dp
         ),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme. colorScheme.surface // Card background color
-        )
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        onClick = onClick
     ) {
-        // Column arranges children vertically
-        Column(
-            modifier = Modifier. padding(16.dp) // Padding inside card
+        Row(
+            modifier = Modifier
+                .padding(20.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // User name - bold and larger text
-            Text(
-                text = user.name,
-                style = MaterialTheme. typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme. onSurface
-            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Name section with better typography
+                Text(
+                    text = user.name,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
 
-            // Username - smaller text
-            Text(
-                text = "@${user.username}",
-                style = MaterialTheme.typography. bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f) // Slightly transparent
-            )
+                // Username with subtle styling
+                Text(
+                    text = "@${user.username}",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium
+                )
 
-            // Email with icon-like prefix
-            Text(
-                text = "📧 ${user.email}",
-                style = MaterialTheme. typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                modifier = Modifier.padding(top = 8.dp)
-            )
+                Spacer(modifier = Modifier.height(4.dp))
 
-            // Phone with icon-like prefix
-            Text(
-                text = "📞 ${user.phone}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                modifier = Modifier.padding(top = 4.dp)
-            )
+                // Info items with icons
+                InfoRow(
+                    icon = Icons.Default.Email,
+                    text = user.email,
+                    iconTint = MaterialTheme.colorScheme.secondary
+                )
 
-            // City with icon-like prefix
-            Text(
-                text = "📍 ${user.address.city}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                modifier = Modifier.padding(top = 4.dp)
-            )
+                InfoRow(
+                    icon = Icons.Default.Phone,
+                    text = user.phone,
+                    iconTint = MaterialTheme.colorScheme.secondary
+                )
 
-            // Company name with icon-like prefix
-            Text(
-                text = "🏢 ${user.company.name}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme. colorScheme.onSurface.copy(alpha = 0.6f),
-                modifier = Modifier.padding(top = 4.dp)
-            )
+                InfoRow(
+                    icon = Icons.Default.LocationOn,
+                    text = user.address.city,
+                    iconTint = MaterialTheme.colorScheme.secondary
+                )
+
+                InfoRow(
+                    icon = Icons.Default.Business,
+                    text = user.company.name,
+                    iconTint = MaterialTheme.colorScheme.secondary
+                )
+            }
+
+            // Navigation indicator
+            Surface(
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = "View Todos",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
         }
     }
 }
 
 /**
- * Preview for UserItem in Android Studio
+ * Reusable composable for info rows with icon
  */
+@Composable
+private fun InfoRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    text: String,
+    iconTint: androidx.compose.ui.graphics.Color,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = iconTint,
+            modifier = Modifier.size(18.dp)
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun UserItemPreview() {
@@ -154,5 +190,9 @@ fun UserItemPreview() {
         )
     )
 
-    UserItem(user = sampleUser)
+    MaterialTheme {
+        Surface {
+            UserItem(user = sampleUser)
+        }
+    }
 }
