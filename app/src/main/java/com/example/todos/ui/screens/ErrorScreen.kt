@@ -3,6 +3,7 @@ package com.example.todos.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -13,7 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 /**
- * Improved error screen with better visual design
+ * Enhanced error screen with prominent retry button
  */
 @Composable
 fun ErrorScreen(
@@ -34,7 +35,8 @@ fun ErrorScreen(
             Surface(
                 shape = MaterialTheme.shapes.large,
                 color = MaterialTheme.colorScheme.errorContainer,
-                modifier = Modifier.size(100.dp)
+                modifier = Modifier.size(100.dp),
+                tonalElevation = 8.dp
             ) {
                 Box(
                     contentAlignment = Alignment.Center
@@ -50,10 +52,11 @@ fun ErrorScreen(
 
             // Error title
             Text(
-                text = "Oops!",
+                text = "Something Went Wrong",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center
             )
 
             // Error message
@@ -64,24 +67,46 @@ fun ErrorScreen(
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Retry button
+            // Prominent retry button with icon
             Button(
                 onClick = onRetry,
                 modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .height(48.dp),
+                    .fillMaxWidth(0.8f)
+                    .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                elevation = ButtonDefaults.buttonElevation(
+                    defaultElevation = 4.dp,
+                    pressedElevation = 8.dp
                 )
             ) {
-                Text(
-                    text = "Try Again",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Retry",
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Text(
+                        text = "Try Again",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
+
+            // Optional: Add a hint
+            Text(
+                text = "Tap the button above to retry",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
         }
     }
 }

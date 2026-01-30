@@ -25,6 +25,7 @@ fun TodoScreen(
     val viewModel: TodoViewModel = viewModel()
     val todoState by viewModel.todoState.collectAsStateWithLifecycle()
 
+    // Load todos when screen appears or userId changes
     LaunchedEffect(userId) {
         if (userId != null) {
             viewModel.loadTodos(userId)
@@ -32,41 +33,60 @@ fun TodoScreen(
     }
 
     Scaffold(
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = "User Todos",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "User ID: ${userId ?: "Unknown"}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                        )
-                    }
+                    Text(
+                        text = if (userId != null) "User $userId's Todos" else "Todos",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back to Users",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                actions = {
+                    // Show refresh button when not loading and not in error state
+                    if (todoState is com.example.todos.domain.TodoState.Success) {
+                        IconButton(
+                            onClick = {
+                                userId?.let { viewModel.loadTodos(it) }
+                            }
+                        ) {
+                            Icon(
+                                Icons.Default.Refresh,
+                                contentDescription = "Refresh todos",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    }
+                }
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)) {
-
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
             when (todoState) {
                 is com.example.todos.domain.TodoState.Loading -> {
-                    LoadingScreen(message = "Loading todos...")
+                    LoadingScreen(
+                        message = "Loading todos...",
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
                 is com.example.todos.domain.TodoState.Success -> {
                     val todos = (todoState as com.example.todos.domain.TodoState.Success).todos
@@ -76,7 +96,8 @@ fun TodoScreen(
                     val message = (todoState as com.example.todos.domain.TodoState.Error).message
                     ErrorScreen(
                         message = message,
-                        onRetry = { userId?.let { viewModel.loadTodos(it) } }
+                        onRetry = { viewModel.retry() },
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }
@@ -90,6 +111,11 @@ fun TodoListContent(todos: List<Todo>) {
         // Stats info
         val completedCount = todos.count { it.completed }
         val totalCount = todos.size
+        val completionRate = if (totalCount > 0) {
+            ((completedCount.toDouble() / totalCount) * 100).toInt()
+        } else {
+            0
+        }
 
         Surface(
             modifier = Modifier
@@ -97,17 +123,18 @@ fun TodoListContent(todos: List<Todo>) {
                 .padding(16.dp),
             color = MaterialTheme.colorScheme.secondaryContainer,
             shape = MaterialTheme.shapes.large,
-            shadowElevation = 2.dp
+            tonalElevation = 4.dp
         ) {
             Row(
-                modifier = Modifier.padding(20.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Default.CheckCircle,
+                    imageVector = if (completionRate == 100) Icons.Default.CheckCircle else Icons.Default.TaskAlt,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(32.dp)
                 )
                 Column {
                     Text(
@@ -117,7 +144,7 @@ fun TodoListContent(todos: List<Todo>) {
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                     Text(
-                        text = "${((completedCount.toDouble() / totalCount) * 100).toInt()}% completion rate",
+                        text = "$completionRate% completion rate",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
                     )
@@ -147,11 +174,15 @@ fun TodoItem(todo: Todo) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp,
-            pressedElevation = 4.dp
+            defaultElevation = 2.dp,
+            pressedElevation = 6.dp
         ),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = if (todo.completed) {
+                MaterialTheme.colorScheme.surfaceVariant
+            } else {
+                MaterialTheme.colorScheme.surface
+            }
         )
     ) {
         Row(
@@ -164,17 +195,16 @@ fun TodoItem(todo: Todo) {
                 imageVector = if (todo.completed) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
                 contentDescription = if (todo.completed) "Completed" else "Not completed",
                 tint = if (todo.completed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(28.dp)
             )
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
             Text(
                 text = todo.title,
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodyLarge,
-                color = if (todo.completed) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                else MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             if (todo.completed) {

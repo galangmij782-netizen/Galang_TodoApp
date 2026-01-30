@@ -58,14 +58,21 @@ kotlin {
 }
 
 dependencies {
-    // Navigation Compose
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    dependencies {
+        // ... existing dependencies ...
 
-    // Material Icons Extended
-    implementation("androidx.compose.material:material-icons-extended:1.6.0")
+        // Navigation Compose
+        implementation("androidx.navigation:navigation-compose:2.7.7")
 
-    // ViewModel Compose
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+        // Material Icons Extended
+        implementation("androidx.compose.material:material-icons-extended:1.6.0")
+
+        // ViewModel Compose
+        implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+
+        // Lifecycle-aware state collection
+        implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    }
     // Compose BOM (Bill of Materials)
     implementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(platform(libs.androidx.compose.bom))
