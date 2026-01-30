@@ -2,7 +2,7 @@ package com.example.todos.data.remote
 
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
-import retrofit2.converter.gson. GsonConverterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 /**
@@ -20,10 +20,10 @@ object RetrofitClient {
     private val okHttpClient: OkHttpClient by lazy {
 
         OkHttpClient.Builder()
-            . connectTimeout(30, TimeUnit.SECONDS) // Connection timeout
+            .connectTimeout(30, TimeUnit.SECONDS) // Connection timeout
             .readTimeout(30, TimeUnit.SECONDS) // Read timeout
             .writeTimeout(30, TimeUnit.SECONDS) // Write timeout
-            . build()
+            .build()
     }
 
     /**
@@ -43,6 +43,6 @@ object RetrofitClient {
      * This is the main entry point for making API calls
      */
     val apiService: ApiService by lazy {
-        retrofit.create(ApiService:: class.java)
+        retrofit.create(ApiService::class.java)
     }
 }
